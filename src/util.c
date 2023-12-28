@@ -11,6 +11,7 @@
 char **file_to_str_array(char *input) {
 
     FILE *input_file = fopen(input, "r");
+    fopen_success_check(input_file);
 
     int lines_size = 1, str_size = 1;
     char *line = calloc(str_size, sizeof(char *));

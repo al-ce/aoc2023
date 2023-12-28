@@ -1,3 +1,4 @@
+
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,119 +6,83 @@
 
 #include "util.h"
 
-#define MAX_POWER 3
-
-typedef struct gear gear;
-struct gear {
-    int row;
+typedef struct gear {
     int col;
     int first;
     int second;
-};
+    int gear_ratio;
+    int found;
+} gear;
 
-typedef struct node node;
-struct node {
-    gear val;
-    node *next;
-};
+void update_gear(gear *curr_gear, int val) {
+    curr_gear->first = !curr_gear->first ? val : 0;
+    curr_gear->second = curr_gear->first ? val : 0;
+    ++curr_gear->found;
+    curr_gear->gear_ratio *= val;
+}
 
-int is_gear(char c) { return c = '*'; }
+int move_cursor(char *lines[], int row, int cursor, gear *s) {
+    int initial_position = cursor;
+    char *line = lines[row];
+    int val = 0;
+    if (initial_position > s->col + 1 || row < 0 || row == strlen(line) ||
+        cursor < 0 || cursor >= strlen(line) || !isdigit(line[cursor])) {
+        return initial_position;
+    }
 
-int find_gear(char *line, int start, int end) {
-    start = max(0, start - 1);
-    end = min(end, strlen(line) + 1);
-    for (int i = start; i <= end; ++i) {
-        if (is_gear(line[i])) {
-            return start + i;
+    // Move cursor to leftmost digit
+    while (cursor >= 0 && isdigit(line[cursor])) {
+        --cursor;
+    }
+
+    // Update value until end of number
+    while (isdigit(line[++cursor])) {
+        int digit = line[cursor] - '0';
+        val = val * 10 + digit;
+    }
+
+    // Update the gear if the number is in a valid position
+    if (val > 0) {
+        update_gear(s, val);
+        return cursor;
+    }
+    return initial_position;
+}
+
+int check_gear(char **lines, int row, int col) {
+    gear g = {col, 0, 0, 1, 0};
+
+    // Check curr + adjacent rows for a number
+    for (int i = row - 1; i <= row + 1; ++i) {
+        // Check curr + adjacent cols for a number
+        for (int cursor = col - 1; cursor <= col + 1; ++cursor) {
+            cursor = move_cursor(lines, i, cursor, &g);
         }
     }
-    return -1;
-}
 
-int find_above(char **lines, int row, int start, int end) {
-    return row == 0 ? -1 : find_gear(lines[row - 1], start, end);
-}
-
-int find_below(char **lines, int row, int start, int end) {
-    return !lines[row + 1] ? -1 : find_gear(lines[row + 1], start, end);
-}
-
-int check_left(char *line, int start) {
-    return start > 0 && is_gear(line[start - 1]);
-}
-
-int check_right(char *line, int cursor) {
-    return cursor < strlen(line) - 1 && is_gear(line[cursor]);
-}
-
-gear *find_gear_ratio(char *num, int cursor, char **lines, int row) {
-
-    int start = cursor;
-    int line_len = strlen(lines[row]);
-
-    while (cursor < line_len && isdigit(lines[row][cursor])) {
-        if (cursor - start == sizeof(num)) {
-            num = realloc(num, sizeof(num) * 2);
-        }
-        num[cursor - start] = lines[row][cursor];
-        ++cursor;
-    }
-
-
-
-    // If we didn't build a number, early return
-    if (!strlen(num)) {
-        return num;
-    }
-
-    // Check for part-number indicator symbol
-    int prev = (start > 0 && is_gear(lines[row][start - 1]));
-    int next = (cursor < line_len - 1 && is_gear(lines[row][cursor]));
-    int above = (row > 0 && find_gear(lines[row - 1], start, cursor));
-    int below = (lines[row + 1] && find_gear(lines[row + 1], start, cursor));
-    if (prev || next || above || below) {
-        return num;
-    }
-
-    // If no symbol is adjacent to the number, reset `num` to an empty string,
-    // indicating that it is not a valid part number
-    free(num);
-    num = calloc(1, sizeof(char));
-    return num;
-}
-
-int find_gears_in_line(char **lines, int row) {
-
-    int cursor = 0;
-    int to_add = 0;
-
-    while (cursor < strlen(lines[row])) {
-        char *num = calloc(1, sizeof(char));
-        num = find_gear_ratio(num, cursor, lines, row);
-        if (strlen(num)) {
-            cursor += strlen(num);
-            to_add += str_to_int(num);
-        } else {
-            ++cursor;
-        }
-        free(num);
-    }
-
-    return to_add;
+    // Only return a gear ratio if exactly two numbers were found
+    int gear_ratio = g.found == 2 ? g.gear_ratio : 0;
+    return gear_ratio;
 }
 
 int main(void) {
 
     char **lines = file_to_str_array("./input/3");
-    int sum_of_ratios = 0;
-    for (int i = 0; lines[i]; ++i) {
-        sum_of_ratios += find_gears_in_line(lines, i);
+    int sum_of_gear_ratios = 0;
+
+    for (int row = 0; lines[row]; ++row) {
+        for (int col = 0; col < strlen(lines[row]); ++col) {
+            char c = lines[row][col];
+            if (c == '*') {
+                sum_of_gear_ratios += check_gear(lines, row, col);
+            }
+        }
     }
 
-    printf("%d\n", sum_of_ratios);
+    printf("Sum of gear ratios: %d\n\n", sum_of_gear_ratios);
 
-    for (int i = 0; lines[i]; ++i) {
-        free(lines[i]);
+    for (int row = 0; lines[row]; ++row) {
+        free(lines[row]);
     }
     free(lines);
 }

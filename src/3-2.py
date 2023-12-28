@@ -49,10 +49,8 @@ def find_gear_ratio(cursor: int, lines: list[str], row: int) -> tuple[int, int, 
         return row, start - 1, num
     elif check_right(line, cursor):
         return row, cursor, num
-
     elif (gear_above := find_above(lines, row, start, cursor)) > -1:
         return row - 1, gear_above, num
-
     elif (gear_below := find_below(lines, row, start, cursor)) > -1:
         return row + 1, gear_below, num
     else:
