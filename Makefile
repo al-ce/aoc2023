@@ -7,7 +7,6 @@ EXECS=$(patsubst $(SRC)/%.c, $(BINDIR)/%, $(SRCS))
 
 OBJ=obj
 OBJS=$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SRCS))
-OBJS += $(OBJ)/util.o
 
 BINDIR=bin
 OUTPUTDIR=output
@@ -18,9 +17,6 @@ $(EXECS): $(BINDIR)/%: $(OBJ)/%.o $(OBJ)/util.o
 	$(CC) $(CFLAGS) $^ -o $@
 
 $(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
-
-$(OBJ)/util.o: $(SRC)/util.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
