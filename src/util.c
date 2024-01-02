@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "util.h"
 
@@ -87,13 +88,9 @@ int int_to_str(int sum, char *sum_str, int sum_strlen) {
     return *sum_str;
 }
 
-int max(int a, int b) {
-    return a > b ? a : b;
-}
+int max(int a, int b) { return a > b ? a : b; }
 
-int min(int a, int b) {
-    return a < b ? a : b;
-}
+int min(int a, int b) { return a < b ? a : b; }
 
 // Convert a string to an integer (assumes unsigned)
 int str_to_int(char *str) {
@@ -106,4 +103,18 @@ int str_to_int(char *str) {
         str_as_int = str_as_int * 10 + curr;
     }
     return str_as_int;
+}
+
+int strstarts(char *str, char *startswith) {
+    int len_starts = strlen(startswith);
+    int len_str = strlen(str);
+    if (len_starts > len_str) {
+        return 0;
+    }
+    for (int i = 0; i < len_starts; ++i) {
+        if (!(str[i] == startswith[i])) {
+            return 0;
+        }
+    }
+    return 1;
 }

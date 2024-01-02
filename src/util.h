@@ -19,4 +19,6 @@ int min(int a, int b);
 
 int str_to_int(char *str);
 
+int strstarts(char *str, char *startswith);
+
 #endif // UTIL_H
