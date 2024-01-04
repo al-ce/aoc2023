@@ -22,7 +22,7 @@ void swap(long **arr, int idx_a, int idx_b) {
 }
 
 long extract_number(char **line, char *delim) {
-    return strtol(strtok_r(*line, delim, &*line), NULL, 10);
+    return strtol(strtok_r(*line, delim, line), NULL, 10);
 }
 
 void parse_seed_nums(FILE *input_file, long *seeds, char *line) {
@@ -43,37 +43,41 @@ void parse_map(char *line, map *m) {
     m->diff = m->min_src - m->min_dst;
 }
 
+void update_range(long **seeds, int start_idx, long a, long b) {
+    (*seeds)[start_idx] = a;
+    (*seeds)[start_idx + 1] = b;
+}
+
 void split_range(long **seeds, int *seeds_size, map m, long a, long b) {
     *seeds_size += 2;
     (*seeds) = realloc(*seeds, sizeof(long) * *seeds_size);
-    (*seeds)[*seeds_size - 2] = a - m.diff;
-    (*seeds)[*seeds_size - 1] = b - m.diff;
+    update_range(seeds, *seeds_size - 2, a - m.diff, b - m.diff);
 }
 
 void almanac_map(long **seeds, char *line, int *queue_end, int *seeds_size) {
     map m;
     parse_map(line, &m);
-    for (int q_cursor = 0; q_cursor < *queue_end; q_cursor += 2) {
-        long start = (*seeds)[q_cursor];
-        long end = (*seeds)[q_cursor + 1];
-
-        if (start >= m.min_src && start <= m.max_src) {
+    for (int cursor = 0, skipped = 0; skipped * 2 < *queue_end; cursor += 2) {
+        long start = (*seeds)[cursor];
+        long end = (*seeds)[cursor + 1];
+        if (cursor >= *queue_end) {
+            cursor = -2;
+        } else if (start >= m.min_src && start <= m.max_src) {
             if (end <= m.max_src) {
-                (*seeds)[q_cursor] -= m.diff;
-                (*seeds)[q_cursor + 1] -= m.diff;
-                swap(seeds, q_cursor, *queue_end - 1);
-                swap(seeds, q_cursor + 1, *queue_end);
+                update_range(seeds, cursor, start - m.diff, end - m.diff);
+                swap(seeds, cursor, *queue_end - 1);
+                swap(seeds, cursor + 1, *queue_end);
                 *queue_end -= 2;
-                q_cursor = -2;
+                skipped = 0;
             } else {
-                split_range(seeds, &*seeds_size, m, start, m.max_src);
-                (*seeds)[q_cursor] = m.max_src + 1;
-                (*seeds)[q_cursor + 1] = end;
+                split_range(seeds, seeds_size, m, start, m.max_src);
+                update_range(seeds, cursor, m.max_src + 1, end);
             }
         } else if (end >= m.min_src && end <= m.max_src) {
-            split_range(seeds, &*seeds_size, m, m.min_src, end);
-            (*seeds)[q_cursor] = start;
-            (*seeds)[q_cursor + 1] = m.min_src - 1;
+            split_range(seeds, seeds_size, m, m.min_src, end);
+            update_range(seeds, cursor, start, m.min_src - 1);
+        } else {
+            skipped += 1;
         }
     }
 }
