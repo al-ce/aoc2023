@@ -51,5 +51,7 @@ int main(void) {
     int ways = get_range(factors[0], factors[1]);
     printf("\n%d ways to win\n", ways);
 
+    free(time_str);
+    free(record_str);
     fclose(input_file);
 }
