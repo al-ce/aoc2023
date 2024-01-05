@@ -14,7 +14,7 @@ OUTPUTDIR=output
 all: $(EXECS)
 
 $(EXECS): $(BINDIR)/%: $(OBJ)/%.o $(OBJ)/util.o
-	$(CC) $(CFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 $(OBJ)/%.o: $(SRC)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
