@@ -17,7 +17,7 @@ enum hand_type {
     FIVE_OF_A_KIND = 6
 };
 
-typedef struct {
+typedef struct value {
     long score;
     long bid;
 } value;

@@ -6,7 +6,7 @@
 #define MAXLINE 1024
 #define TOTSEEDS 20
 
-typedef struct {
+typedef struct map {
     long min_dst;
     long min_src;
     long max_src;

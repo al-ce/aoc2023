@@ -7,7 +7,7 @@
 /* #define TOTSEEDS 4 */
 #define TOTSEEDS 20
 
-typedef struct {
+typedef struct map {
     long min_dst;
     long min_src;
     long max_src;
