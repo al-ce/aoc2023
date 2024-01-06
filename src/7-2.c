@@ -4,8 +4,10 @@
 #include <string.h>
 
 #define MAXCHARS 12
+#define JOKER 'J'
+#define JOKER_VAL 1
 
-const char high_cards[] = {'T', 'J', 'Q', 'K', 'A'};
+const char high_cards[] = {'T', 'Q', 'K', 'A'}; // 'J' is 1 in this version
 
 enum hand_type {
     HIGH_CARD = 0,
@@ -14,7 +16,7 @@ enum hand_type {
     THREE_OF_A_KIND,
     FULL_HOUSE,
     QUADS,
-    FIVE_OF_A_KIND
+    FIVE_OF_A_KIND,
 };
 
 typedef struct value {
@@ -25,7 +27,8 @@ typedef struct value {
 long get_file_len(FILE *file);
 long get_card_val(char card);
 long update_score(long score, int idx, int card_val);
-int update_hand_type(int count, int type);
+int update_hand_type(int count, int type, int card_val);
+int apply_jokers(int j_count, int type);
 void sort_hands_by_score(value *hand_values, long hands_played);
 long get_total_winnings(value *hand_values, long hands_played);
 
@@ -53,8 +56,12 @@ int main(void) {
             ++card_count[card_val];
             int count = card_count[card_val];
             score = update_score(score, i, card_val);
-            type = update_hand_type(count, type);
+            type = update_hand_type(count, type, card_val);
         }
+
+        int j_count = card_count[JOKER_VAL];
+        type = apply_jokers(j_count, type);
+
         score += type * 10000000;
 
         long bid = strtol(strtok(NULL, "\n"), NULL, 10);
@@ -67,7 +74,7 @@ int main(void) {
     sort_hands_by_score(scores, hands_played);
 
     long tot = get_total_winnings(scores, hands_played);
-    printf("\nAoC 2023 - Day 7 Part 1\n");
+    printf("\nAoC 2023 - Day 7 Part 2\n");
     printf("\nTotal winnings: %lu\n", tot);
 
     fclose(input_file);
@@ -84,10 +91,13 @@ long get_file_len(FILE *file) {
 }
 
 long get_card_val(char card) {
+    if (card == JOKER) {
+        return JOKER_VAL;
+    }
     if (isdigit(card)) {
         return card - '0';
     }
-    for (int i = 0; i < 5; ++i) {
+    for (int i = 0; i < 4; ++i) {
         if (high_cards[i] == card) {
             return i + 10;
         }
@@ -103,7 +113,10 @@ long update_score(long score, int idx, int card_val) {
     return score + card_val * factor;
 }
 
-int update_hand_type(int count, int type) {
+int update_hand_type(int count, int type, int card_val) {
+    if (card_val == 1) {
+        return type;
+    }
     return count == 5                              ? FIVE_OF_A_KIND
            : count == 4                            ? QUADS
            : count == 3 && type == TWO_PAIR        ? FULL_HOUSE
@@ -112,6 +125,15 @@ int update_hand_type(int count, int type) {
            : count == 2 && type == 1               ? TWO_PAIR
            : count == 2                            ? ONE_PAIR
                                                    : type;
+}
+
+int apply_jokers(int j_count, int type) {
+    return j_count == 0                        ? type
+           : j_count == 1 && type != QUADS     ? type + 2 - (type == HIGH_CARD)
+           : j_count == 2 && type == HIGH_CARD ? THREE_OF_A_KIND
+           : j_count == 2 && type == ONE_PAIR  ? QUADS
+           : j_count == 3 && type == HIGH_CARD ? QUADS
+                                               : FIVE_OF_A_KIND;
 }
 
 void insertion_sort(value *arr, long arr_len) {
