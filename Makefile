@@ -1,19 +1,17 @@
 CC=gcc
 CFLAGS=-g -Wall
-
 SRC=src
-SRCS=$(filter-out $(SRC)/util.c, $(wildcard $(SRC)/*.c))
+FILTERS=$(SRC)/util.c $(SRC)/hash_map_oa.c
+SRCS=$(filter-out $(FILTERS), $(wildcard $(SRC)/*.c))
 EXECS=$(patsubst $(SRC)/%.c, $(BINDIR)/%, $(SRCS))
-
 OBJ=obj
 OBJS=$(patsubst $(SRC)/%.c, $(OBJ)/%.o, $(SRCS))
-
 BINDIR=bin
 OUTPUTDIR=output
 
 all: $(EXECS)
 
-$(EXECS): $(BINDIR)/%: $(OBJ)/%.o $(OBJ)/util.o
+$(EXECS): $(BINDIR)/%: $(OBJ)/%.o $(OBJ)/util.o $(OBJ)/hash_map_oa.o
 	$(CC) $(CFLAGS) $^ -o $@ -lm
 
 $(OBJ)/%.o: $(SRC)/%.c

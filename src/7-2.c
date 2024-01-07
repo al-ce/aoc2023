@@ -157,6 +157,7 @@ long get_total_winnings(value *hand_values, long hands_played) {
     long tot = 0;
     for (int i = 0; i < hands_played; ++i) {
         tot += (i + 1) * hand_values[i].bid;
+
     }
     return tot;
 }
