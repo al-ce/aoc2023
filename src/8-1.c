@@ -37,10 +37,10 @@ int main(void) {
     while (strcmp(curr_key, "ZZZ")) {
         char instruction = instructions[i];
         char *curr_value = hm_get(hm, curr_key);
-        if (instruction == 'R') {
-            strncpy(curr_key, curr_value + 5, 3);
-        } else if (instruction == 'L') {
+        if (instruction == 'L') {
             strncpy(curr_key, curr_value, 3);
+        } else if (instruction == 'R') {
+            strncpy(curr_key, curr_value + 5, 3);
         }
         ++steps;
         ++i;
@@ -49,7 +49,7 @@ int main(void) {
         }
     }
 
-    printf("\nAoC 2023 Day 8 Part 1: %s\n", curr_key);
+    printf("\nAoC 2023 Day 8 Part 1\n");
     printf("\nSteps: %d\n", steps);
 
     hm_dealloc(hm);
