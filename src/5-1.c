@@ -17,7 +17,7 @@ long extract_number(char **line, char *delim) {
     return strtol(strtok_r(*line, delim, &*line), NULL, 10);
 }
 
-void parse_seed_nums(FILE *input_file, long *seeds, char *line) {
+void parse_seed_nums(long *seeds, char *line) {
     char *seedStr = line;
     for (int i = 0; i < TOTSEEDS; ++i) {
         char *delim = "seeds: ";
@@ -64,7 +64,7 @@ int main(void) {
 
     long seeds[TOTSEEDS];
     fgets(line, sizeof(line), input_file);
-    parse_seed_nums(input_file, seeds, line);
+    parse_seed_nums(seeds, line);
 
     int queue_end = TOTSEEDS - 1;
     while (fgets(line, sizeof(line), input_file)) {
