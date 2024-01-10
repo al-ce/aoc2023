@@ -11,40 +11,47 @@ connects: dict[tuple[int, int], str] = {
 
 
 @define
-class Pipe:
+class Coord:
     row: int = field()
     col: int = field()
+
+    def __add__(self, other) -> "Coord":
+        return Coord(self.row + other.row, self.col + other.col)
+
+
+@define
+class Loop:
+    curr: Coord = field()
+    prev: Coord = field()
     rows: list[str] = field()
-    prev: tuple[int, int] = row, col
     char: str = "S"
     length: int = 0
-    coords: list[tuple[int, int]] = []
+    vertices: list[Coord] = []
 
-    def get_interior_tiles(self):
+    def get_interior_tiles(self) -> int:
         sum = 0
         for i in range(0, self.length):
-            x_0, y_0 = self.coords[i]
-            x_1, y_1 = self.coords[i - 1]
-            sum += (x_0 * y_1) - (x_1 * y_0)
-        return (sum - self.length) / 2 + 1
+            c_0 = self.vertices[i]
+            c_1 = self.vertices[i - 1]
+            sum += (c_1.col * c_0.row) - (c_0.col * c_1.row)
 
-    def get_farthest_pipe(self):
+        interior = (sum - self.length) / 2 + 1
+        return int(interior)
+
+    def get_farthest_pipe(self) -> int:
         return self.length // 2 + self.length % 2
 
 
-def look(pipe: Pipe, dir: tuple[int, int]) -> tuple[int, int]:
-    row_next, col_next = pipe.row + dir[0], pipe.col + dir[1]
-    can_move: bool = pipe.char in connects[dir]
+def look(loop: Loop, dir: Coord):
+    next: Coord = loop.curr + dir
+    can_move: bool = loop.char in connects[(dir.row, dir.col)]
 
-    if can_move and pipe.prev != (row_next, col_next):
-        pipe.prev = (pipe.row, pipe.col)
-        pipe.coords.append(pipe.prev)
-        pipe.char = pipe.rows[row_next][col_next]
-        pipe.row = row_next
-        pipe.col = col_next
-        pipe.length += 1
-        return pipe.row, pipe.col
-    return -1, -1
+    if can_move and loop.prev != next:
+        loop.prev = loop.curr
+        loop.curr = next
+        loop.vertices.append(loop.curr)
+        loop.char = loop.rows[next.row][next.col]
+        loop.length += 1
 
 
 def get_diagram(file: str) -> list[str]:
@@ -52,36 +59,37 @@ def get_diagram(file: str) -> list[str]:
         return [line.strip() for line in f.readlines()]
 
 
-def find_start(diagram: list[str]) -> tuple[int, int]:
+def find_start(diagram: list[str]) -> Coord:
     row, col = 0, 0
     for line in diagram:
         col = line.find("S")
         if col >= 0:
-            return row, col
+            return Coord(row, col)
         row += 1
-    return -1, -1
+    return Coord(-1, -1)
 
 
-def traverse(pipe: Pipe):
+def traverse(loop: Loop):
     pipe_type = ""
+    connect_keys = connects.keys()
     while pipe_type != "S":
-        look(pipe, (-1, 0))
-        look(pipe, (1, 0))
-        look(pipe, (0, -1))
-        look(pipe, (0, 1))
-        pipe_type = pipe.char
+        for x, y in connect_keys:
+            look(loop, Coord(x, y))
+        pipe_type = loop.char
 
 
 def main():
     diagram = get_diagram(INPUT)
-    row, col = find_start(diagram)
-    pipe = Pipe(row, col, diagram)
-    traverse(pipe)
+    start = find_start(diagram)
+    loop = Loop(start, start, diagram)
+    loop.vertices.append(loop.curr)
+    traverse(loop)
 
-    print("\nAoC 2023 Day 10 - Part 1\n")
-    print(f"Pipe length: {pipe.length}")
-    print(f"Part 1: Farthest pipe is {pipe.get_farthest_pipe()} pipes away")
-    print(f"Part 2: There are {pipe.get_interior_tiles()} interior tiles")
+    print("\nAoC 2023 Day 10\n")
+    print(f"Loop starts at: {start.row}, {start.col}")
+    print(f"Loop length: {loop.length}")
+    print(f"Part 1: Farthest pipe is {loop.get_farthest_pipe()} pipes away")
+    print(f"Part 2: There are {loop.get_interior_tiles()} interior tiles")
 
 
 if __name__ == "__main__":
