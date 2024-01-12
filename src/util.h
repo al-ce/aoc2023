@@ -3,7 +3,9 @@
 
 #include <stdio.h>
 
-char **file_to_str_array(char *input);
+int count_lines_in_file(char *filename);
+
+char **file_to_str_array(char *filename);
 
 int find_char(char *line, char target);
 

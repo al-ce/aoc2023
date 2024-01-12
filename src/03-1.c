@@ -84,7 +84,6 @@ int main(void) {
     }
 
     printf("%d\n", sum);
-    /* printf("hello"); */
 
     for (int i = 0; lines[i]; ++i) {
         free(lines[i]);

@@ -27,17 +27,16 @@ void append_vertex(Loop *loop) {
     loop->vertices[loop->length - 1] = loop->curr;
 }
 
-Coord find_start(char **diagram) {
-    Coord start = {-1, -1};
-    for (int i = 0; diagram[i]; ++i) {
-        char *s = strchr(diagram[i], 'S');
-        if (s) {
-            start.row = i;
-            start.col = s - diagram[i];
-            break;
+Coord find_start(char **diagram, int diagram_len) {
+    for (int i = 0; i < diagram_len; ++i) {
+        char *line = diagram[i];
+        for (int j = 0; j < strlen(line); ++j) {
+            if (line[j] == 'S') {
+                return (Coord){i, j};
+            }
         }
     }
-    return start;
+    return (Coord){-1, -1};
 }
 
 void look(Loop *loop, Coord dir, char *connects, char **diagram) {
@@ -82,7 +81,9 @@ int get_interior_tiles(Loop *loop) {
 int main(void) {
 
     char **diagram = file_to_str_array("./input/10");
-    Coord start = find_start(diagram);
+    int diagram_len = count_lines_in_file("./input/10");
+
+    Coord start = find_start(diagram, diagram_len);
 
     Loop loop = {.curr = start, .curr_type = 'S', .length = 0, .capacity = 7};
     loop.vertices = calloc(sizeof(Coord), loop.capacity);
@@ -97,4 +98,10 @@ int main(void) {
     printf("Loop length: %d\n", loop.length);
     printf("Part 1: Farthest pipe is %d pipes away\n", farthest);
     printf("Part 2: There are %d interior tiles\n", interior);
+
+    free(loop.vertices);
+    for (int i = 0; i < diagram_len; ++i) {
+        free(diagram[i]);
+    }
+    free(diagram);
 }

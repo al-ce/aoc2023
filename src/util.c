@@ -9,9 +9,9 @@
 
 // Read a file into an array of strings. Caller is responsible for freeing
 // the array and its contents.
-char **file_to_str_array(char *input) {
+char **file_to_str_array(char *filename) {
 
-    FILE *input_file = fopen(input, "r");
+    FILE *input_file = fopen(filename, "r");
     fopen_success_check(input_file);
 
     int lines_size = 1, str_size = 1;
@@ -45,6 +45,20 @@ char **file_to_str_array(char *input) {
     }
 
     free(line); // Free the last allocation, which was not used.
+    fclose(input_file);
+    return lines;
+}
+
+int count_lines_in_file(char *input) {
+    FILE *input_file = fopen(input, "r");
+    fopen_success_check(input_file);
+    int lines = 0;
+    char c;
+    while (fread(&c, sizeof(char), 1, input_file)) {
+        if (c == '\n') {
+            ++lines;
+        }
+    }
     fclose(input_file);
     return lines;
 }
