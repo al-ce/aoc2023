@@ -6,6 +6,11 @@ typedef struct {
     long col;
 } Galaxy;
 
+typedef struct {
+    long steps;
+    long emptiness;
+} Path;
+
 long get_side_len(FILE *fp) {
     long side_len = 0;
     char c;
@@ -17,6 +22,24 @@ long get_side_len(FILE *fp) {
     }
     rewind(fp);
     return side_len;
+}
+
+Path get_path(Galaxy g1, Galaxy g2, long *empty_rows, long *empty_cols) {
+    long col_delta = g2.col > g1.col ? 1 : -1;
+    long row_delta = g2.row > g1.row ? 1 : -1;
+
+    long steps = 0;
+    long emptiness = 0;
+    for (long k = g1.col; k != g2.col; k += col_delta) {
+        steps++;
+        emptiness += empty_cols[k];
+    }
+    for (long k = g1.row; k != g2.row; k += row_delta) {
+        steps++;
+        emptiness += empty_rows[k];
+    }
+
+    return (Path){steps, emptiness};
 }
 
 int main(void) {
@@ -72,43 +95,29 @@ int main(void) {
     long expansion = 0;
     long distance_sum = 0;
     for (long i = 0; i < gal_len; i++) {
-        Galaxy g1 = gal_arr[i];
-
         for (long j = 0; j < gal_len; j++) {
             if (pairings[i][j] || pairings[j][i]) {
                 continue;
             }
             pairings[i][j] = 1;
 
+            Galaxy g1 = gal_arr[i];
             Galaxy g2 = gal_arr[j];
-
-            long col_diff = g2.col - g1.col;
-            long row_diff = g2.row - g1.row;
-            distance_sum += labs(col_diff) + labs(row_diff);
-
-            // Add expansion (an extra step) for each empty row or column
-            // between the two galaxies
-            long col_delta = col_diff > 0 ? 1 : -1;
-            long row_delta = row_diff > 0 ? 1 : -1;
-            for (long k = g1.col; k != g2.col; k += col_delta) {
-                expansion += empty_cols[k];
-            }
-            for (long k = g1.row; k != g2.row; k += row_delta) {
-                expansion += empty_rows[k];
-            }
+            Path path = get_path(g1, g2, empty_rows, empty_cols);
+            distance_sum += path.steps;
+            expansion += path.emptiness;
         }
     }
 
     long ancient_distance_sum = distance_sum + expansion * 999999;
-    distance_sum = distance_sum + expansion;
+    long young_distance_sum = distance_sum + expansion;
 
     printf("\nAoC 2023 Day 11\n");
     printf("Total distance between all galaxies:\n");
 
-    printf("Part One (young universe)  : %ld\n", distance_sum);
+    printf("Part One (young universe)  : %ld\n", young_distance_sum);
     printf("Part Two (ancient universe): %ld\n", ancient_distance_sum);
 
     free(gal_arr);
     fclose(fp);
-    return EXIT_SUCCESS;
 }
